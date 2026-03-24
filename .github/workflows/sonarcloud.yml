@@ -1,0 +1,43 @@
+name: Build and Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 12 * * *'
+
+jobs:
+  build:
+    name: Build + Tests + SonarCloud
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout do código
+      - name: Checkout
+        uses: actions/checkout@v5.0.0
+        with:
+          fetch-depth: 0
+
+      # Setup Node
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      # Instalar dependências
+      - name: Install dependencies
+        run: npm ci
+
+      # Rodar testes + coverage
+      - name: Run tests with coverage
+        run: npm run coverage
+
+      # Rodar SonarCloud
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
